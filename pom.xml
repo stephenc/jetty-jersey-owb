@@ -37,6 +37,7 @@
     <geronimo_cdi-version>1.0.1</geronimo_cdi-version>
     <geronimo_atinject-version>1.0</geronimo_atinject-version>
     <geronimo_jpa-version>1.1</geronimo_jpa-version>
+    <geronimo-config-version>1.2.2</geronimo-config-version>
   </properties>
 
   <dependencyManagement>
@@ -103,6 +104,13 @@
         <artifactId>geronimo-jpa_2.0_spec</artifactId>
         <version>${geronimo_jpa-version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.apache.geronimo.config</groupId>
+        <artifactId>geronimo-config-impl</artifactId>
+        <version>${geronimo-config-version}</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -303,6 +311,12 @@
       <groupId>org.apache.openwebbeans</groupId>
       <artifactId>openwebbeans-web</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.geronimo.config</groupId>
+      <artifactId>geronimo-config-impl</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
