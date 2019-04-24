@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2019 CloudBees, Inc.
+  ~ All rights reserved.
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.cloudbees</groupId>
+    <artifactId>cloudbees-internal-parent</artifactId>
+    <version>21</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.cloudbees.devoptics</groupId>
+  <artifactId>jetty-jersey-owb</artifactId>
+  <version>1.x-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <name>Minimal Jetty + Jersey + OWB</name>
+  <description>Minimal Jetty + Jersey + OWB</description>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <!-- sibling project production versions (see profiles for development integration) -->
+    <servlet-api-version>3.1.0</servlet-api-version>
+    <jetty-version>9.4.17.v20190418</jetty-version>
+    <jackson-version>2.9.7</jackson-version>
+    <jersey2-version>2.25.1</jersey2-version>
+    <jodatime-version>2.7</jodatime-version>
+    <log4j2-version>2.8.2</log4j2-version>
+    <flink-version>1.7.2</flink-version>
+    <flink-scala-version>2.12</flink-scala-version>
+    <!-- this should be kept in sync with AWS -->
+    <elasticsearch-version>6.2.4</elasticsearch-version>
+    <awssdk.version>1.11.179</awssdk.version>
+    <slf4j-version>1.7.25</slf4j-version>
+    <metrics-version>4.0.2</metrics-version>
+    <dockerfile-maven-plugin-version>1.4.3</dockerfile-maven-plugin-version>
+    <sonar.projectName>DevOptics Pulse</sonar.projectName>
+    <kafka-version>2.2.0</kafka-version>
+    <kinesis-version>2.0.4</kinesis-version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-bom</artifactId>
+  <version>9.4.17.v20190418</version>
+  <type>pom</type>
+  <scope>import</scope>
+</dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>${servlet-api-version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <localCheckout>true</localCheckout>
+            <pushChanges>false</pushChanges>
+            <developmentVersion>1.x-SNAPSHOT</developmentVersion>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.github.stephenc.continuous</groupId>
+          <artifactId>git-timestamp-maven-plugin</artifactId>
+          <version>1.1</version>
+        </plugin>
+        <plugin>
+          <groupId>com.spotify</groupId>
+          <artifactId>dockerfile-maven-plugin</artifactId>
+          <version>${dockerfile-maven-plugin-version}</version>
+          <configuration>
+            <repository>cloudbees/devoptics-${project.artifactId}</repository>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <preparationGoals>validate</preparationGoals>
+          <goals>deploy sonar:sonar</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <stagingProfileId>8a415966a3496</stagingProfileId>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
