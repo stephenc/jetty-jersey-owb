@@ -30,38 +30,280 @@
     <servlet-api-version>3.1.0</servlet-api-version>
     <jetty-version>9.4.17.v20190418</jetty-version>
     <jackson-version>2.9.7</jackson-version>
-    <jersey2-version>2.25.1</jersey2-version>
-    <jodatime-version>2.7</jodatime-version>
-    <log4j2-version>2.8.2</log4j2-version>
-    <flink-version>1.7.2</flink-version>
-    <flink-scala-version>2.12</flink-scala-version>
-    <!-- this should be kept in sync with AWS -->
-    <elasticsearch-version>6.2.4</elasticsearch-version>
-    <awssdk.version>1.11.179</awssdk.version>
-    <slf4j-version>1.7.25</slf4j-version>
-    <metrics-version>4.0.2</metrics-version>
-    <dockerfile-maven-plugin-version>1.4.3</dockerfile-maven-plugin-version>
-    <sonar.projectName>DevOptics Pulse</sonar.projectName>
-    <kafka-version>2.2.0</kafka-version>
-    <kinesis-version>2.0.4</kinesis-version>
+    <jersey2-version>2.28</jersey2-version>
+    <openwebbeans-version>2.0.10</openwebbeans-version>
+    <geronimo_annotation-version>1.0</geronimo_annotation-version>
+    <geronimo_interceptor-version>1.0</geronimo_interceptor-version>
+    <geronimo_cdi-version>1.0.1</geronimo_cdi-version>
+    <geronimo_atinject-version>1.0</geronimo_atinject-version>
+    <geronimo_jpa-version>1.1</geronimo_jpa-version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-  <groupId>org.eclipse.jetty</groupId>
-  <artifactId>jetty-bom</artifactId>
-  <version>9.4.17.v20190418</version>
-  <type>pom</type>
-  <scope>import</scope>
-</dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-bom</artifactId>
+        <version>9.4.17.v20190418</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <version>${jersey2-version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>${servlet-api-version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.openwebbeans</groupId>
+        <artifactId>openwebbeans-spi</artifactId>
+        <version>${openwebbeans-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openwebbeans</groupId>
+        <artifactId>openwebbeans-impl</artifactId>
+        <version>${openwebbeans-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openwebbeans</groupId>
+        <artifactId>openwebbeans-web</artifactId>
+        <version>${openwebbeans-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-annotation_1.3_spec</artifactId>
+        <version>${geronimo_annotation-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-interceptor_1.2_spec</artifactId>
+        <version>${geronimo_interceptor-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jcdi_2.0_spec</artifactId>
+        <version>${geronimo_cdi-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-atinject_1.0_spec</artifactId>
+        <version>${geronimo_atinject-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jpa_2.0_spec</artifactId>
+        <version>${geronimo_jpa-version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jcdi_2.0_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-atinject_1.0_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-interceptor_1.2_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-annotation_1.3_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jpa_2.0_spec</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-jaxb</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-binding</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish</groupId>
+          <artifactId>jakarta.json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet-core</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-sse</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-jetty-http</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext.cdi</groupId>
+      <artifactId>jersey-cdi1x-servlet</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>jakarta.inject</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openwebbeans</groupId>
+      <artifactId>openwebbeans-spi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openwebbeans</groupId>
+      <artifactId>openwebbeans-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openwebbeans</groupId>
+      <artifactId>openwebbeans-web</artifactId>
+    </dependency>
+  </dependencies>
 
   <build>
     <pluginManagement>
@@ -80,16 +322,40 @@
           <version>1.1</version>
         </plugin>
         <plugin>
-          <groupId>com.spotify</groupId>
-          <artifactId>dockerfile-maven-plugin</artifactId>
-          <version>${dockerfile-maven-plugin-version}</version>
-          <configuration>
-            <repository>cloudbees/devoptics-${project.artifactId}</repository>
-          </configuration>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-maven-plugin</artifactId>
+          <version>${jetty-version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.0-beta-7</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>enforce-ban-duplicate-classes</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <banDuplicateClasses>
+                  <findAllDuplicates>true</findAllDuplicates>
+                </banDuplicateClasses>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
