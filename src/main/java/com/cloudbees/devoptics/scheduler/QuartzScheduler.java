@@ -1,7 +1,9 @@
 package com.cloudbees.devoptics.scheduler;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -10,7 +12,6 @@ import org.quartz.JobExecutionException;
 import org.quartz.ScheduleBuilder;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
 import org.quartz.SimpleScheduleBuilder;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
@@ -24,8 +25,8 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AnnotatedMethod;
 import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.CDI;
+import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,11 +35,13 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * A scheduler used to run methods annotated with {@link Scheduled} based on the configuration outlined in each
+ * annotation.
+ *
  * @author <a href="mailto:mgagliardo@cloudbees.com">Michael Gagliardo</a>
  */
 
@@ -46,8 +49,56 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class QuartzScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuartzScheduler.class);
+
+    /**
+     * Key used to store/retrieve the method to invoke
+     */
     private static final String EXECUTION_KEY = "execution";
+
+    /**
+     * Key used to indicate the name of the method to invoke
+     */
     private static final String NAME_KEY = "name";
+
+    @Inject
+    @ConfigProperty(name = "scheduler.instanceName", defaultValue = "DefaultQuartzScheduler")
+    private String schedulerName;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.rmi.export", defaultValue = "false")
+    private boolean schedulerRmiExport;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.rmi.proxy", defaultValue = "false")
+    private boolean schedulerRmiProxy;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.wrapJobExecutionInUserTransaction", defaultValue = "false")
+    private boolean schedulerWrapJobExecutionInUserTransaction;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.threadPool.class", defaultValue = "org.quartz.simpl.SimpleThreadPool")
+    private String schedulerThreadPoolClass;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.threadPool.threadCount", defaultValue = "10")
+    private String schedulerThreadPoolThreadCount;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.threadPool.threadPriority", defaultValue = "5")
+    private String schedulerThreadPoolThreadPriority;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.threadsInheritContextClassLoaderOfInitializingThread", defaultValue = "true")
+    private boolean schedulerThreadsInheritContextClassLoaderOfInitializingThread;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.jobStore.misfireThreshold", defaultValue = "60000")
+    private String schedulerJobStoreMisfireThreshold;
+
+    @Inject
+    @ConfigProperty(name = "scheduler.jobStore.class", defaultValue = "org.quartz.simpl.RAMJobStore")
+    private String schedulerJobStoreClass;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Scheduler scheduler;
@@ -63,48 +114,44 @@ public class QuartzScheduler {
                     continue;
                 }
 
+                if (!validateScheduledMethod(method.getJavaMember())) {
+                    throw new IllegalArgumentException(String.format("Scheduled methods must accept zero arguments and return void. %s", method));
+                }
+
                 List<Scheduled> scheduledList = new ArrayList<>(method.getAnnotations(Scheduled.class));
                 method.getJavaMember().setAccessible(true);
                 scheduledMethods.put(method.getJavaMember(), scheduledList);
             }
 
             if (scheduledMethods.size() > 0) {
-                Optional<Bean<?>> managedBean = CDI.current().getBeanManager().getBeans(type.getJavaClass()).stream().findFirst();
-                if (managedBean.isPresent()) {
-                    CreationalContext<?> context = CDI.current().getBeanManager().createCreationalContext(managedBean.get());
-                    Object instance = CDI.current().getBeanManager().getReference(managedBean.get(), type.getJavaClass(), context);
-
-                    scheduledMethods.forEach((method, scheduledList) -> {
-                        scheduledJobConfigs.add(ScheduledJobConfig.of(
-                                method.getDeclaringClass().getName() + "_" + method.getName(),
-                                scheduledList,
-                                () -> method.invoke(instance)));
+                CDI.current().getBeanManager().getBeans(type.getJavaClass())
+                    .stream()
+                    .findFirst()
+                    .ifPresent(managedBean -> {
+                        CreationalContext<?> context = CDI.current().getBeanManager().createCreationalContext(managedBean);
+                        Object instance = CDI.current().getBeanManager().getReference(managedBean, type.getJavaClass(), context);
+                        scheduledMethods.entrySet()
+                            .stream()
+                            .map(methodListEntry -> ScheduledJobConfig.of(
+                                methodListEntry.getKey().getDeclaringClass().getName() + "_" + methodListEntry.getKey().getName(),
+                                methodListEntry.getValue(),
+                                () -> methodListEntry.getKey().invoke(instance))
+                            ).forEach(scheduledJobConfigs::add);
                     });
-                }
             }
         }
 
         startup(scheduledJobConfigs);
     }
 
+    private boolean validateScheduledMethod(Method method) {
+        return method.getParameterCount() == 0 && method.getReturnType().equals(Void.TYPE);
+    }
+
     private void startup(List<ScheduledJobConfig> scheduledJobConfigs) {
         if (running.compareAndSet(false, true)) {
             try {
-                Properties props = new Properties();
-                props.put("org.quartz.scheduler.instanceName", "DefaultQuartzScheduler");
-                props.put("org.quartz.scheduler.rmi.export", false);
-                props.put("org.quartz.scheduler.rmi.proxy", false);
-                props.put("org.quartz.scheduler.wrapJobExecutionInUserTransaction", false);
-                props.put("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
-                props.put("org.quartz.threadPool.threadCount", "10");
-                props.put("org.quartz.threadPool.threadPriority", "5");
-                props.put("org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", true);
-                props.put("org.quartz.jobStore.misfireThreshold", "60000");
-                props.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
-
-                SchedulerFactory schedulerFactory = new StdSchedulerFactory(props);
-                scheduler = schedulerFactory.getScheduler();
-
+                scheduler = new StdSchedulerFactory(getSchedulerProperties()).getScheduler();
                 scheduler.setJobFactory((bundle, scheduler) -> {
                     Class<? extends Job> jobClass = bundle.getJobDetail().getJobClass();
                     if (jobClass.equals(ScheduledJob.class)) {
@@ -133,7 +180,7 @@ public class QuartzScheduler {
 
                         String every = scheduled.every();
 
-                        if (!scheduled.property().isEmpty()) {
+                        if (StringUtil.isNotBlank(scheduled.property())) {
                             every = config.getValue(scheduled.property(), String.class);
                         }
 
@@ -159,6 +206,7 @@ public class QuartzScheduler {
                         TriggerBuilder<?> triggerBuilder = TriggerBuilder.newTrigger()
                                 .withIdentity(name + "_trigger", Scheduled.class.getName())
                                 .withSchedule(scheduleBuilder);
+
                         if (scheduled.delay() > 0) {
                             triggerBuilder.startAt(new Date(Instant.now()
                                     .plusMillis(scheduled.delayUnit().toMillis(scheduled.delay())).toEpochMilli()));
@@ -188,10 +236,32 @@ public class QuartzScheduler {
         }
     }
 
+    private Properties getSchedulerProperties() {
+        Properties props = new Properties();
+        props.put("org.quartz.scheduler.instanceName", schedulerName);
+        props.put("org.quartz.scheduler.rmi.export", schedulerRmiExport);
+        props.put("org.quartz.scheduler.rmi.proxy", schedulerRmiProxy);
+        props.put("org.quartz.scheduler.wrapJobExecutionInUserTransaction", schedulerWrapJobExecutionInUserTransaction);
+        props.put("org.quartz.threadPool.class", schedulerThreadPoolClass);
+        props.put("org.quartz.threadPool.threadCount", schedulerThreadPoolThreadCount);
+        props.put("org.quartz.threadPool.threadPriority", schedulerThreadPoolThreadPriority);
+        props.put("org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", schedulerThreadsInheritContextClassLoaderOfInitializingThread);
+        props.put("org.quartz.jobStore.misfireThreshold", schedulerJobStoreMisfireThreshold);
+        props.put("org.quartz.jobStore.class", schedulerJobStoreClass);
+
+        return props;
+    }
+
+    /**
+     * An interface to define the invocation of a scheduled task
+     */
     interface Execution {
         void invoke() throws Exception;
     }
 
+    /**
+     * Holds a execution and its associated scheduled annotations
+     */
     static class ScheduledJobConfig {
         private final String name;
         private final Execution execution;
@@ -208,6 +278,10 @@ public class QuartzScheduler {
         }
     }
 
+    /**
+     * The job which will be executed by the QuartzScheduler. The execute method will attempt to
+     * invoke the annotated execution
+     */
     class ScheduledJob implements Job {
 
         ScheduledJob() { }
