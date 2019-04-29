@@ -28,10 +28,10 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <!-- sibling project production versions (see profiles for development integration) -->
     <servlet-api-version>3.1.0</servlet-api-version>
-    <jetty-version>9.4.17.v20190418</jetty-version>
+    <jetty-version>9.4.12.v20180830</jetty-version>
     <jackson-version>2.9.7</jackson-version>
     <jersey2-version>2.28</jersey2-version>
-    <openwebbeans-version>2.0.10</openwebbeans-version>
+    <openwebbeans-version>2.0.10.2-cloudbees-1</openwebbeans-version>
     <geronimo_annotation-version>1.0</geronimo_annotation-version>
     <geronimo_interceptor-version>1.0</geronimo_interceptor-version>
     <geronimo_cdi-version>1.0.1</geronimo_cdi-version>
@@ -39,6 +39,8 @@
     <geronimo_jpa-version>1.1</geronimo_jpa-version>
     <geronimo-config-version>1.2.2</geronimo-config-version>
     <quartz-scheduler-version>2.3.1</quartz-scheduler-version>
+    <smallrye-health-version>1.0.3</smallrye-health-version>
+    <johnzon-version>1.1.11</johnzon-version>
   </properties>
 
   <dependencyManagement>
@@ -46,7 +48,7 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-bom</artifactId>
-        <version>9.4.17.v20190418</version>
+        <version>${jetty-version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -75,6 +77,11 @@
       <dependency>
         <groupId>org.apache.openwebbeans</groupId>
         <artifactId>openwebbeans-web</artifactId>
+        <version>${openwebbeans-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openwebbeans</groupId>
+        <artifactId>openwebbeans-jetty9</artifactId>
         <version>${openwebbeans-version}</version>
       </dependency>
       <dependency>
@@ -116,6 +123,18 @@
         <groupId>org.quartz-scheduler</groupId>
         <artifactId>quartz</artifactId>
         <version>${quartz-scheduler-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-health</artifactId>
+        <version>${smallrye-health-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.johnzon</groupId>
+        <artifactId>johnzon-mapper</artifactId>
+        <version>${johnzon-version}</version>
       </dependency>
 
     </dependencies>
@@ -279,20 +298,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-jetty-http</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.glassfish.hk2.external</groupId>
-          <artifactId>jakarta.inject</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>jakarta.annotation</groupId>
-          <artifactId>jakarta.annotation-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.glassfish.jersey.ext.cdi</groupId>
       <artifactId>jersey-cdi1x-servlet</artifactId>
       <exclusions>
@@ -307,6 +312,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.johnzon</groupId>
+      <artifactId>johnzon-mapper</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.openwebbeans</groupId>
       <artifactId>openwebbeans-spi</artifactId>
     </dependency>
@@ -317,6 +326,10 @@
     <dependency>
       <groupId>org.apache.openwebbeans</groupId>
       <artifactId>openwebbeans-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openwebbeans</groupId>
+      <artifactId>openwebbeans-jetty9</artifactId>
     </dependency>
 
     <dependency>
@@ -335,6 +348,17 @@
         <exclusion>
           <groupId>com.mchange</groupId>
           <artifactId>c3p0</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.smallrye</groupId>
+      <artifactId>smallrye-health</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.inject</groupId>
+          <artifactId>javax.inject</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
