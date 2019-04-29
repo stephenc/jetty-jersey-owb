@@ -1,6 +1,6 @@
 package com.cloudbees.devoptics.scheduler;
 
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -180,7 +180,7 @@ public class QuartzScheduler {
 
                         String every = scheduled.every();
 
-                        if (StringUtil.isNotBlank(scheduled.property())) {
+                        if (StringUtils.isNotBlank(scheduled.property())) {
                             every = config.getValue(scheduled.property(), String.class);
                         }
 

@@ -41,6 +41,7 @@
     <quartz-scheduler-version>2.3.1</quartz-scheduler-version>
     <smallrye-health-version>1.0.3</smallrye-health-version>
     <johnzon-version>1.1.11</johnzon-version>
+    <commons-lang3-version>3.9</commons-lang3-version>
   </properties>
 
   <dependencyManagement>
@@ -135,6 +136,12 @@
         <groupId>org.apache.johnzon</groupId>
         <artifactId>johnzon-mapper</artifactId>
         <version>${johnzon-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3-version}</version>
       </dependency>
 
     </dependencies>
@@ -350,6 +357,11 @@
           <artifactId>c3p0</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
 
     <dependency>
