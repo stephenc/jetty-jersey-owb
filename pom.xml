@@ -40,6 +40,7 @@
     <geronimo-config-version>1.2.2</geronimo-config-version>
     <quartz-scheduler-version>2.3.1</quartz-scheduler-version>
     <smallrye-health-version>1.0.3</smallrye-health-version>
+    <smallrye-metrics-version>1.1.3</smallrye-metrics-version>
     <johnzon-version>1.1.11</johnzon-version>
     <commons-lang3-version>3.9</commons-lang3-version>
   </properties>
@@ -142,6 +143,12 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${commons-lang3-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-metrics</artifactId>
+        <version>${smallrye-metrics-version}</version>
       </dependency>
 
     </dependencies>
@@ -373,6 +380,11 @@
           <artifactId>javax.inject</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.smallrye</groupId>
+      <artifactId>smallrye-metrics</artifactId>
     </dependency>
 
   </dependencies>

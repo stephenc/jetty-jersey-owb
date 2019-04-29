@@ -3,6 +3,7 @@ package com.cloudbees.devoptics;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 
 @ApplicationScoped
 public class GreeterImpl implements Greeter {
@@ -12,6 +13,7 @@ public class GreeterImpl implements Greeter {
     String name;
 
     @Override
+    @Timed(name="test")
     public String getMessage() {
         return String.format("Hello %s", name);
     }

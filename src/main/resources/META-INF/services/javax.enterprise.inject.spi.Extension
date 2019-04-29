@@ -1,1 +1,2 @@
 com.cloudbees.devoptics.scheduler.ScheduledExtension
+com.cloudbees.microprofile.metrics.MetricCdiInjectionExtension
